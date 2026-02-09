@@ -27,35 +27,14 @@ func main() {
 
 	log.Println("Successfully connected to MariaDB")
 
-	// Initialize Item dependencies
-	itemRepo := item.NewRepository(db)
-	itemService := item.NewService(itemRepo)
-	itemHandler := item.NewHandler(itemService)
-
-	categoryRepo := category.NewRepository(db)
-	categoryService := category.NewService(categoryRepo)
-	categoryHandler := category.NewHandler(categoryService)
-
-	// Initialize Category dependencies
-	// categoryRepo := category.NewRepository(db)
-	// categoryService := category.NewService(categoryRepo)
-	// categoryHandler := category.NewHandler(categoryService)
-
-	// Initialize User dependencies
-	// userRepo := user.NewRepository(db)
-	// userService := user.NewService(userRepo)
-	// userHandler := user.NewHandler(userService)
-
 	// Setup Gin router
 	r := gin.Default()
 
 	// Set Cors
 	if cfg.Environment == "development" {
-		// Development: Allow all origins
 		r.Use(cors.Default())
 		log.Println("CORS: Allowing all origins (Development mode)")
 	} else {
-		// Production: Restrict origins
 		r.Use(cors.New(cors.Config{
 			AllowOrigins:     cfg.AllowedOrigins,
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -64,56 +43,13 @@ func main() {
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}))
-		log.Printf("CORS: Allowing origins: %v (Production mode)", cfg.AllowedOrigins)
 	}
-	// API Routes Group
+
+	// Dynamic Registration
 	api := r.Group("/api")
 	{
-		// Item routes
-		items := api.Group("/items")
-		{
-			items.GET("", itemHandler.GetAllItem)
-			items.POST("", itemHandler.CreateItem)
-			items.GET("/:id", itemHandler.GetItemByID)
-			items.GET("/code/:code", itemHandler.GetItemByCode)
-			items.PUT("/:id", itemHandler.UpdateItem)
-			items.DELETE("/:id", itemHandler.SoftDeleteItem)
-		}
-
-		// Category routes
-		categories := api.Group("/category")
-		{
-			categories.GET("", categoryHandler.GetAllCategory)
-			categories.POST("", categoryHandler.CreateCategory)
-			categories.GET("/:id", categoryHandler.GetCategoryByID)
-			categories.GET("/code/:code", categoryHandler.GetCategoryByCode)
-			categories.PUT("/:id", categoryHandler.UpdateCategory)
-			categories.DELETE("/:id", categoryHandler.SoftDeleteCategory)
-		}
-
-		// // Category routes
-		// categories := api.Group("/category")
-		// {
-		// 	categories.GET("", categoryHandler.GetAllCategory)
-		// 	categories.POST("", categoryHandler.CreateCategory)
-		// 	categories.GET("/:id", categoryHandler.GetCategoryByID)
-		// 	categories.GET("/code/:code", categoryHandler.GetCategoryByCode)
-		// 	categories.PUT("/:id", categoryHandler.UpdateCategory)
-		// 	categories.DELETE("/:id", categoryHandler.DeleteCategory)
-		// }
-
-		// // User routes
-		// api.POST("/auth/login", userHandler.Login)
-		// users := api.Group("/users")
-		// {
-		// 	users.GET("", userHandler.GetUsers)
-		// 	users.POST("", userHandler.CreateUser)
-		// 	users.GET("/:id", userHandler.GetUser)
-		// 	users.GET("/username/:username", userHandler.GetUserByUsername)
-		// 	users.PUT("/:id", userHandler.UpdateUser)
-		// 	users.POST("/:id/change-password", userHandler.ChangePassword)
-		// 	users.DELETE("/:id", userHandler.DeleteUser)
-		// }
+		item.Register(api, db)
+		category.Register(api, db)
 	}
 
 	// Health check

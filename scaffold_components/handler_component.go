@@ -8,9 +8,26 @@ import (
 	"errors"
 	"scaffoldy/pkg/response"
 	"net/http"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
 )
+
+func Register(router *gin.RouterGroup, db *sql.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	group := router.Group("/{{.DomainNameLower}}")
+	{
+		group.GET("", h.GetAll{{.DomainName}})
+		group.POST("", h.Create{{.DomainName}})
+		group.GET("/:id", h.Get{{.DomainName}}ByID)
+		group.GET("/code/:code", h.Get{{.DomainName}}ByCode)
+		group.PUT("/:id", h.Update{{.DomainName}})
+		group.DELETE("/:id", h.SoftDelete{{.DomainName}})
+	}
+}
 
 // GetAll{{.DomainName}}
 // Get{{.DomainName}}ByID

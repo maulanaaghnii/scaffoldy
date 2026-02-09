@@ -1,13 +1,29 @@
-
 package item
 
 import (
+	"database/sql"
 	"errors"
-	"scaffoldy/pkg/response"
 	"net/http"
+	"scaffoldy/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
+
+func Register(router *gin.RouterGroup, db *sql.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	group := router.Group("/items")
+	{
+		group.GET("", h.GetAllItem)
+		group.POST("", h.CreateItem)
+		group.GET("/:id", h.GetItemByID)
+		group.GET("/code/:code", h.GetItemByCode)
+		group.PUT("/:id", h.UpdateItem)
+		group.DELETE("/:id", h.SoftDeleteItem)
+	}
+}
 
 // GetAllItem
 // GetItemByID
@@ -16,7 +32,6 @@ import (
 // CreateItem
 // UpdateItem
 // SoftDeleteItem
-
 
 type Handler struct {
 	service *Service
@@ -119,4 +134,3 @@ func (h *Handler) SoftDeleteItem(c *gin.Context) {
 	}
 	response.NoContent(c)
 }
-

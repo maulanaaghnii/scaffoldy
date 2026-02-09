@@ -5,9 +5,26 @@ import (
 	"errors"
 	"scaffoldy/pkg/response"
 	"net/http"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
 )
+
+func Register(router *gin.RouterGroup, db *sql.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	group := router.Group("/category")
+	{
+		group.GET("", h.GetAllCategory)
+		group.POST("", h.CreateCategory)
+		group.GET("/:id", h.GetCategoryByID)
+		group.GET("/code/:code", h.GetCategoryByCode)
+		group.PUT("/:id", h.UpdateCategory)
+		group.DELETE("/:id", h.SoftDeleteCategory)
+	}
+}
 
 // GetAllCategory
 // GetCategoryByID
