@@ -14,6 +14,8 @@ type CreateItemRequest struct {
 	IsActive bool `json:"isActive"` 
 	CreatedAt time.Time `json:"createdAt"` 
 	CreatedBy string `json:"createdBy"` 
+	UpdatedAt time.Time `json:"updatedAt"` 
+	UpdatedBy string `json:"updatedBy"` 
 } 
 
 type UpdateItemRequest struct {
@@ -26,6 +28,8 @@ type UpdateItemRequest struct {
 	Price float64 `json:"price"` 
 	Stock int `json:"stock"` 
 	IsActive bool `json:"isActive"` 
+	CreatedAt time.Time `json:"createdAt"` 
+	CreatedBy string `json:"createdBy"` 
 	UpdatedAt time.Time `json:"updatedAt"` 
 	UpdatedBy string `json:"updatedBy"` 
 }

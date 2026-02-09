@@ -29,7 +29,7 @@ func NewRepository(db *sql.DB) *Repository {
 
 func (r *Repository) Save(item Item) error {
 	query := `
-		INSERT INTO tblItem (
+		INSERT INTO tblitem (
 			ID,
 			Code,
 			Name,
@@ -77,7 +77,7 @@ func (r *Repository) Save(item Item) error {
 }
 func (r *Repository) Update(item Item) error {
 	query := `
-		UPDATE tblItem SET 
+		UPDATE tblitem SET 
 			ID = ?,
 			Code = ?,
 			Name = ?,
@@ -135,7 +135,7 @@ func (r *Repository) Update(item Item) error {
 func (r *Repository) FindAll() ([]Item, error) {
 	query := `
 		SELECT ID, Code, Name, Description, Category, Unit, Price, Stock, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
-		FROM tblItem
+		FROM tblitem
 	`
 
 	rows, err := r.db.Query(query)
@@ -173,7 +173,7 @@ func (r *Repository) FindAll() ([]Item, error) {
 func (r *Repository) FindById(id string) (Item, error) {
 	query := `
 		SELECT ID, Code, Name, Description, Category, Unit, Price, Stock, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
-		FROM tblItem
+		FROM tblitem
 		WHERE ID = ?
 	`
 
@@ -205,7 +205,7 @@ func (r *Repository) FindById(id string) (Item, error) {
 func (r *Repository) FindByCode(code string) (Item, error) {
 	query := `
 		SELECT ID, Code, Name, Description, Category, Unit, Price, Stock, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
-		FROM tblItem
+		FROM tblitem
 		WHERE Code = ?
 	`
 
@@ -236,7 +236,7 @@ func (r *Repository) FindByCode(code string) (Item, error) {
 
 func (r *Repository) SoftDelete(id string) error {
 	query := `
-		UPDATE tblItem SET IsActive = false
+		UPDATE tblitem SET IsActive = false
 		WHERE ID = ?
 	`
 
@@ -249,7 +249,7 @@ func (r *Repository) SoftDelete(id string) error {
 
 func (r *Repository) Delete(id string) error {
 	query := `
-		DELETE FROM tblItem
+		DELETE FROM tblitem
 		WHERE ID = ?
 	`
 

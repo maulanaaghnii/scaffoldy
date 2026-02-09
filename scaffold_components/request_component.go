@@ -17,8 +17,6 @@ func RequestComponent(domainName string, fieldsCreate []utils.FieldInfo, fieldsU
 		// or concat them if we really want backticks in the output string.
 		res += fmt.Sprintf("\t%s %s `json:\"%s\"` \n", field.Name, field.Type, utils.LowerFirst(field.Name))
 	}
-	res += "\tCreatedAt time.Time `json:\"createdAt\"` \n"
-	res += "\tCreatedBy string `json:\"createdBy\"` \n"
 
 	res += "} \n\n"
 
@@ -29,8 +27,7 @@ func RequestComponent(domainName string, fieldsCreate []utils.FieldInfo, fieldsU
 		// or concat them if we really want backticks in the output string.
 		res += fmt.Sprintf("\t%s %s `json:\"%s\"` \n", field.Name, field.Type, utils.LowerFirst(field.Name))
 	}
-	res += "\tUpdatedAt time.Time `json:\"updatedAt\"` \n"
-	res += "\tUpdatedBy string `json:\"updatedBy\"` \n"
+
 	res += "}"
 
 	return res

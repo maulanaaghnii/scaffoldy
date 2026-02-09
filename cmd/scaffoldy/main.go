@@ -2,17 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
-	"scaffoldy/internal/category"
 	"scaffoldy/pkg/utils"
 	_scaffold_components "scaffoldy/scaffold_components"
+	"strings"
 	"text/template"
 )
 
 func ScaffoldHanlderComponents(domainName string) {
-
 	tpl := _scaffold_components.HandlerContent()
-
 	t, err := template.New("code").Parse(tpl)
 	if err != nil {
 		panic(err)
@@ -38,8 +37,8 @@ func ScaffoldHanlderComponents(domainName string) {
 	}
 }
 
-func ScaffoldRepositoryComponents(domainName string, v any, tableName string) {
-	fieldsQuery := utils.GetFieldsInfo(v, "query")
+func ScaffoldRepositoryComponents(domainName string, fields []utils.FieldInfo, tableName string) {
+	fieldsQuery := utils.FilterFields(fields, "query")
 	tpl := _scaffold_components.RepositoryContent(domainName, fieldsQuery, tableName)
 
 	t, err := template.New("code").Parse(tpl)
@@ -67,9 +66,9 @@ func ScaffoldRepositoryComponents(domainName string, v any, tableName string) {
 	}
 }
 
-func ScaffoldRequestComponents(domainName string, v any) {
-	fieldsCreate := utils.GetFieldsInfo(v, "create")
-	fieldsUpdate := utils.GetFieldsInfo(v, "update")
+func ScaffoldRequestComponents(domainName string, fields []utils.FieldInfo) {
+	fieldsCreate := utils.FilterFields(fields, "create")
+	fieldsUpdate := utils.FilterFields(fields, "update")
 	tpl := _scaffold_components.RequestComponent(domainName, fieldsCreate, fieldsUpdate)
 
 	t, err := template.New("code").Parse(tpl)
@@ -97,9 +96,9 @@ func ScaffoldRequestComponents(domainName string, v any) {
 	}
 }
 
-func ScaffoldServiceComponents(domainName string, v any) {
-	fieldsCreate := utils.GetFieldsInfo(v, "serviceCreate")
-	fieldsUpdate := utils.GetFieldsInfo(v, "serviceUpdate")
+func ScaffoldServiceComponents(domainName string, fields []utils.FieldInfo) {
+	fieldsCreate := utils.FilterFields(fields, "serviceCreate")
+	fieldsUpdate := utils.FilterFields(fields, "serviceUpdate")
 	tpl := _scaffold_components.ServiceContent(domainName, fieldsCreate, fieldsUpdate)
 
 	t, err := template.New("code").Parse(tpl)
@@ -127,27 +126,86 @@ func ScaffoldServiceComponents(domainName string, v any) {
 	}
 }
 
+func InjectRegistration(domainName string) {
+	apiMainPath := "cmd/api/main.go"
+	content, err := os.ReadFile(apiMainPath)
+	if err != nil {
+		fmt.Printf("Warning: Gagal membaca %s untuk auto-injection\n", apiMainPath)
+		return
+	}
+
+	body := string(content)
+	domainLower := utils.LowerFirst(domainName)
+	registerLine := fmt.Sprintf("\t\t%s.Register(api, db)", domainLower)
+	importLine := fmt.Sprintf("\t\"scaffoldy/internal/%s\"", domainLower)
+
+	// 1. Inject Import if not exists
+	if !strings.Contains(body, importLine) {
+		importMarker := "import ("
+		body = strings.Replace(body, importMarker, importMarker+"\n"+importLine, 1)
+	}
+
+	// 2. Inject Register Call if not exists
+	if !strings.Contains(body, registerLine) {
+		marker := "// [SCAFFOLDY_INSERT_MARKER]"
+		body = strings.Replace(body, marker, registerLine+"\n\t\t"+marker, 1)
+	}
+
+	err = os.WriteFile(apiMainPath, []byte(body), 0644)
+	if err != nil {
+		fmt.Printf("Warning: Gagal menulis ke %s\n", apiMainPath)
+	} else {
+		fmt.Printf("Successfully injected %s registration into api/main.go\n", domainName)
+	}
+}
+
 func main() {
-	// Define flags with empty defaults to make them "mandatory" in logic
 	domainName := flag.String("domain-name", "", "The name of the domain")
 	tableName := flag.String("table-name", "", "The name of the database table")
-
-	// Parse the flags
 	flag.Parse()
 
-	// Validation: Check if mandatory flags are provided
 	if *domainName == "" || *tableName == "" {
-		println("\n[WARNING] Eksekusi dibatalkan!")
-		println("Anda harus menyertakan --domain-name dan --table-name")
-		println("Contoh: go run .\\cmd\\scaffoldy\\. --domain-name Category --table-name tblcategory\n")
+		fmt.Println("\n[WARNING] Anda harus menyertakan --domain-name dan --table-name")
 		os.Exit(1)
 	}
 
-	// Use the values from flags (dereferencing the pointers)
-	ScaffoldHanlderComponents(*domainName)
-	ScaffoldRepositoryComponents(*domainName, category.Category{}, *tableName)
-	ScaffoldRequestComponents(*domainName, category.Category{})
-	ScaffoldServiceComponents(*domainName, category.Category{})
+	// CARI FILE MODEL/ENTITY SECARA OTOMATIS
+	domainLower := utils.LowerFirst(*domainName)
+	entityPaths := []string{
+		fmt.Sprintf("internal/%s/entity.go", domainLower),
+		fmt.Sprintf("internal/%s/%s.go", domainLower, domainLower),
+	}
 
-	println("Successfully scaffolded domain:", *domainName)
+	var fields []utils.FieldInfo
+	// var err error
+	foundFile := ""
+
+	for _, path := range entityPaths {
+		if _, err := os.Stat(path); err == nil {
+			fields, err = utils.GetFieldsFromAST(path, *domainName)
+			if err == nil && len(fields) > 0 {
+				foundFile = path
+				break
+			}
+		}
+	}
+
+	if foundFile == "" {
+		fmt.Printf("Error: File entity untuk domain '%s' tidak ditemukan di internal/%s/\n", *domainName, domainLower)
+		fmt.Println("Pastikan ada file entity.go atau " + domainLower + ".go dengan struct " + *domainName)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Menggunakan model dari: %s\n", foundFile)
+
+	// Eksekusi Scaffold
+	ScaffoldHanlderComponents(*domainName)
+	ScaffoldRepositoryComponents(*domainName, fields, *tableName)
+	ScaffoldRequestComponents(*domainName, fields)
+	ScaffoldServiceComponents(*domainName, fields)
+
+	// Auto Inject
+	InjectRegistration(*domainName)
+
+	fmt.Printf("\n--- Scaffold Complete for Domain: %s ---\n", *domainName)
 }

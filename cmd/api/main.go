@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
-
 	"scaffoldy/internal/category"
 	"scaffoldy/internal/item"
+	"scaffoldy/internal/itemCategory"
+	"time"
 
 	"scaffoldy/pkg/config"
 
@@ -48,8 +48,11 @@ func main() {
 	// Dynamic Registration
 	api := r.Group("/api")
 	{
-		item.Register(api, db)
+
 		category.Register(api, db)
+		item.Register(api, db)
+		itemCategory.Register(api, db)
+		// [SCAFFOLDY_INSERT_MARKER]
 	}
 
 	// Health check

@@ -1,9 +1,95 @@
 package utils
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"reflect"
 	"strings"
 )
+
+func GetFieldsFromAST(filePath string, structName string) ([]FieldInfo, error) {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var infos []FieldInfo
+
+	ast.Inspect(node, func(n ast.Node) bool {
+		ts, ok := n.(*ast.TypeSpec)
+		if !ok {
+			return true
+		}
+
+		// Jika structName kosong, ambil struct pertama yang ketemu
+		// Jika tidak kosong, cari yang namanya cocok
+		if structName != "" && ts.Name.Name != structName {
+			return true
+		}
+
+		st, ok := ts.Type.(*ast.StructType)
+		if !ok {
+			return true
+		}
+
+		for _, field := range st.Fields.List {
+			fieldType := ""
+			switch t := field.Type.(type) {
+			case *ast.Ident:
+				fieldType = t.Name
+			case *ast.SelectorExpr:
+				fieldType = t.X.(*ast.Ident).Name + "." + t.Sel.Name
+			case *ast.StarExpr:
+				if ident, ok := t.X.(*ast.Ident); ok {
+					fieldType = "*" + ident.Name
+				}
+			}
+
+			// Handle embedded fields (audit trails etc)
+			isEmbedded := len(field.Names) == 0
+
+			if isEmbedded {
+				// Spesifik handle AuditTrails untuk sistem ini
+				if fieldType == "shared.AuditTrails" || fieldType == "AuditTrails" {
+					infos = append(infos, FieldInfo{
+						Name:       "CreatedAt",
+						Type:       "time.Time",
+						IsEmbedded: false,
+					})
+					infos = append(infos, FieldInfo{
+						Name:       "CreatedBy",
+						Type:       "string",
+						IsEmbedded: false,
+					})
+					infos = append(infos, FieldInfo{
+						Name:       "UpdatedAt",
+						Type:       "time.Time",
+						IsEmbedded: false,
+					})
+					infos = append(infos, FieldInfo{
+						Name:       "UpdatedBy",
+						Type:       "string",
+						IsEmbedded: false,
+					})
+					continue
+				}
+			}
+
+			for _, name := range field.Names {
+				infos = append(infos, FieldInfo{
+					Name:       name.Name,
+					Type:       fieldType,
+					IsEmbedded: false,
+				})
+			}
+		}
+		return false // Berhenti setelah ketemu struct yang dicari
+	})
+
+	return infos, nil
+}
 
 type FieldInfo struct {
 	Name       string
@@ -69,6 +155,46 @@ func CategoryFieldsFullSlice(v any) []string {
 		result = append(result, f)
 	}
 	return result
+}
+
+func FilterFields(fields []FieldInfo, requestType string) []FieldInfo {
+	var infos []FieldInfo
+
+	for _, field := range fields {
+		if requestType == "serviceUpdate" && (strings.ToLower(field.Name) == "id" || strings.ToLower(field.Name) == "code") {
+			continue
+		}
+
+		// Handle flattening for query if it's already flattened in AST or handle here
+		// In my AST parser, I already flattened AuditTrails into individual fields for simplicity
+		// So we just need to handle the serviceCreate/Update case where we might want the embedded block
+
+		if requestType == "serviceCreate" || requestType == "serviceUpdate" {
+			// Jika field-field audit trails ada, kita kumpulkan jadi satu "AuditTrails" field jika itu yang diharapkan oleh template
+			if field.Name == "CreatedAt" || field.Name == "CreatedBy" || field.Name == "UpdatedAt" || field.Name == "UpdatedBy" {
+				// Cek apakah AuditTrails sudah ada di infos
+				found := false
+				for _, info := range infos {
+					if info.Name == "AuditTrails" {
+						found = true
+						break
+					}
+				}
+				if !found {
+					infos = append(infos, FieldInfo{
+						Name:       "AuditTrails",
+						Type:       "shared.AuditTrails",
+						IsEmbedded: true,
+					})
+				}
+				continue
+			}
+		}
+
+		infos = append(infos, field)
+	}
+
+	return infos
 }
 
 func GetFieldsInfo(v any, requestType string) []FieldInfo {
