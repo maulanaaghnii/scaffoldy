@@ -50,6 +50,24 @@ func RepositoryContent(domainName string, fieldsQuery []utils.FieldInfo, tableNa
 	return res
 }
 
+func getSelectFields(fields []utils.FieldInfo) string {
+	res := ""
+	for i, field := range fields {
+		if field.Type == "string" {
+			res += "COALESCE(" + field.Name + ", '')"
+		} else if field.Name == "UpdatedAt" {
+			res += "COALESCE(UpdatedAt, CreatedAt)"
+		} else {
+			res += field.Name
+		}
+
+		if i < len(fields)-1 {
+			res += ", "
+		}
+	}
+	return res
+}
+
 func SaveContent(domainName string, fieldsQuery []utils.FieldInfo, tableName string) string {
 	res := "func (r *Repository) Save(" + utils.LowerFirst(domainName) + " " + domainName + ") error {\n"
 	res += "\tquery := `\n"
@@ -70,7 +88,6 @@ func SaveContent(domainName string, fieldsQuery []utils.FieldInfo, tableName str
 	}
 	res += "\n\t\t)\n"
 	res += "\t`"
-	// res += "\t`\n"
 	res += "\n"
 	res += "\t_, err := r.db.Exec(query,\n"
 
@@ -149,14 +166,8 @@ func UpdateContent(domainName string, fieldsQuery []utils.FieldInfo, tableName s
 func FindAllContent(domainName string, fieldsQuery []utils.FieldInfo, tableName string) string {
 	res := "func (r *Repository) FindAll() ([]" + domainName + ", error) {\n"
 	res += "\tquery := `\n"
-	res += "\t	SELECT "
-	for _, field := range fieldsQuery {
-		res += field.Name
-		if field.Name != fieldsQuery[len(fieldsQuery)-1].Name {
-			res += ", "
-		}
-	}
-	res += "\n\t\tFROM " + tableName + "\n"
+	res += "\t	SELECT " + getSelectFields(fieldsQuery) + "\n"
+	res += "\t\tFROM " + tableName + "\n"
 	res += "\t`\n\n"
 	res += "\trows, err := r.db.Query(query)\n"
 	res += "\tif err != nil {\n"
@@ -189,14 +200,8 @@ func FindAllContent(domainName string, fieldsQuery []utils.FieldInfo, tableName 
 func FindByIdContent(domainName string, fieldsQuery []utils.FieldInfo, tableName string) string {
 	res := "func (r *Repository) FindById(id string) (" + domainName + ", error) {\n"
 	res += "\tquery := `\n"
-	res += "\t	SELECT "
-	for _, field := range fieldsQuery {
-		res += field.Name
-		if field.Name != fieldsQuery[len(fieldsQuery)-1].Name {
-			res += ", "
-		}
-	}
-	res += "\n\t\tFROM " + tableName + "\n"
+	res += "\t	SELECT " + getSelectFields(fieldsQuery) + "\n"
+	res += "\t\tFROM " + tableName + "\n"
 	res += "\t\tWHERE ID = ?\n"
 	res += "\t`\n\n"
 	res += "\trow := r.db.QueryRow(query, id)\n"
@@ -224,14 +229,8 @@ func FindByIdContent(domainName string, fieldsQuery []utils.FieldInfo, tableName
 func FindByCodeContent(domainName string, fieldsQuery []utils.FieldInfo, tableName string) string {
 	res := "func (r *Repository) FindByCode(code string) (" + domainName + ", error) {\n"
 	res += "\tquery := `\n"
-	res += "\t	SELECT "
-	for _, field := range fieldsQuery {
-		res += field.Name
-		if field.Name != fieldsQuery[len(fieldsQuery)-1].Name {
-			res += ", "
-		}
-	}
-	res += "\n\t\tFROM " + tableName + "\n"
+	res += "\t	SELECT " + getSelectFields(fieldsQuery) + "\n"
+	res += "\t\tFROM " + tableName + "\n"
 	res += "\t\tWHERE Code = ?\n"
 	res += "\t`\n\n"
 	res += "\trow := r.db.QueryRow(query, code)\n"

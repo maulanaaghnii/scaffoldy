@@ -1,9 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
-	"os"
-	"path/filepath"
+	"scaffoldy/pkg/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -11,21 +12,39 @@ import (
 )
 
 func main() {
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Tambahkan flag untuk force version jika database dirty
+	forceVersion := flag.Int("force", -1, "Force a specific migration version (to fix dirty state)")
+	flag.Parse()
 
-	migrationsPath := filepath.Join(wd, "migrations")
+	cfg := config.Load()
+
+	dsn := fmt.Sprintf("mysql://%s:%s@tcp(%s:%s)/%s",
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
+	)
 
 	m, err := migrate.New(
-		"file://"+migrationsPath,
-		"mysql://root:root@tcp(localhost:3306)/dbname",
+		"file://migrations",
+		dsn,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Jika flag -force dipanggil, jalankan m.Force() lalu berhenti
+	if *forceVersion != -1 {
+		fmt.Printf("Forcing version to %d...\n", *forceVersion)
+		if err := m.Force(*forceVersion); err != nil {
+			log.Fatalf("Failed to force version: %v", err)
+		}
+		log.Println("Force success! Sekarang Anda bisa menjalankan migrasi secara normal kembali.")
+		return
+	}
+
+	// Jalankan migrasi normal
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal(err)
 	}

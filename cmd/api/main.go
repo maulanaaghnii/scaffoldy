@@ -3,9 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
+	"scaffoldy/internal/auth"
 	"scaffoldy/internal/category"
 	"scaffoldy/internal/item"
 	"scaffoldy/internal/itemCategory"
+	"scaffoldy/internal/task"
+	"scaffoldy/pkg/middleware"
 	"time"
 
 	"scaffoldy/pkg/config"
@@ -45,14 +48,23 @@ func main() {
 		}))
 	}
 
-	// Dynamic Registration
+	// API Routes Group
 	api := r.Group("/api")
 	{
+		// 1. PUBLIC ROUTES (Tanpa Auth)
+		auth.Register(api, db) // /api/login
 
-		category.Register(api, db)
-		item.Register(api, db)
-		itemCategory.Register(api, db)
-		// [SCAFFOLDY_INSERT_MARKER]
+		// 2. PROTECTED ROUTES (Pakai Auth)
+		protected := api.Group("")
+		protected.Use(middleware.AuthMiddleware())
+		{
+			// category.Register(protected, db)
+			item.Register(protected, db)
+			itemCategory.Register(protected, db)
+			category.Register(protected, db)
+			task.Register(api, db)
+			// [SCAFFOLDY_INSERT_MARKER]
+		}
 	}
 
 	// Health check
