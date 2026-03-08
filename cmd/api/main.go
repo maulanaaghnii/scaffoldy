@@ -62,7 +62,7 @@ func main() {
 			item.Register(protected, db)
 			itemCategory.Register(protected, db)
 			category.Register(protected, db)
-			task.Register(api, db)
+			task.Register(protected, db)
 			// [SCAFFOLDY_INSERT_MARKER]
 		}
 	}

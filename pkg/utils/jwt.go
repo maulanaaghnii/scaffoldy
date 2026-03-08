@@ -13,9 +13,21 @@ var jwtSecret = []byte(getEnv("JWT_SECRET", "yoursecretkey"))
 func GenerateToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		// "exp":     time.Now().Add(time.Hour * 24).Unix(), // 24 hours
-		"exp": time.Now().Add(time.Second * 30).Unix(), // 30 seconds
-		"iat": time.Now().Unix(),
+		"exp":     time.Now().Add(time.Minute * 15).Unix(), // Access token valid for 15 minutes
+		"iat":     time.Now().Unix(),
+		"type":    "access",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
+
+func GenerateRefreshToken(userID string) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Hour * 24 * 7).Unix(), // Refresh token valid for 7 days
+		"iat":     time.Now().Unix(),
+		"type":    "refresh",
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
