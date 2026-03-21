@@ -51,7 +51,7 @@ func main() {
 	{
 		// 1. PUBLIC ROUTES (Tanpa Auth)
 		auth.Register(api, db) // /api/login
-
+		productWithoutAuth.Register(api, db)
 		// 2. PROTECTED ROUTES (Pakai Auth)
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
@@ -59,7 +59,7 @@ func main() {
 			productWithAuth.Register(api, db)
 			// [SCAFFOLDY_INSERT_MARKER]
 		}
-		productWithoutAuth.Register(api, db)
+
 	}
 
 	// Health check
