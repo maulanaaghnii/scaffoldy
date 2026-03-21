@@ -1,14 +1,11 @@
-package item
+package productWithoutAuth
 
 import "time"
 
-type CreateItemRequest struct {
+type CreateProductWithoutAuthRequest struct {
 	ID string `json:"iD"` 
-	Code string `json:"code"` 
 	Name string `json:"name"` 
 	Description string `json:"description"` 
-	Category string `json:"category"` 
-	Unit string `json:"unit"` 
 	Price float64 `json:"price"` 
 	Stock int `json:"stock"` 
 	IsActive bool `json:"isActive"` 
@@ -18,13 +15,10 @@ type CreateItemRequest struct {
 	UpdatedBy string `json:"updatedBy"` 
 } 
 
-type UpdateItemRequest struct {
+type UpdateProductWithoutAuthRequest struct {
 	ID string `json:"iD"` 
-	Code string `json:"code"` 
 	Name string `json:"name"` 
 	Description string `json:"description"` 
-	Category string `json:"category"` 
-	Unit string `json:"unit"` 
 	Price float64 `json:"price"` 
 	Stock int `json:"stock"` 
 	IsActive bool `json:"isActive"` 

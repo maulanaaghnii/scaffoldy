@@ -1,13 +1,13 @@
-package category
+package productWithAuth
 
 import "time"
 
-type CreateCategoryRequest struct {
+type CreateProductWithAuthRequest struct {
 	ID string `json:"iD"` 
-	Domain string `json:"domain"` 
-	Code string `json:"code"` 
 	Name string `json:"name"` 
 	Description string `json:"description"` 
+	Price float64 `json:"price"` 
+	Stock int `json:"stock"` 
 	IsActive bool `json:"isActive"` 
 	CreatedAt time.Time `json:"createdAt"` 
 	CreatedBy string `json:"createdBy"` 
@@ -15,12 +15,12 @@ type CreateCategoryRequest struct {
 	UpdatedBy string `json:"updatedBy"` 
 } 
 
-type UpdateCategoryRequest struct {
+type UpdateProductWithAuthRequest struct {
 	ID string `json:"iD"` 
-	Domain string `json:"domain"` 
-	Code string `json:"code"` 
 	Name string `json:"name"` 
 	Description string `json:"description"` 
+	Price float64 `json:"price"` 
+	Stock int `json:"stock"` 
 	IsActive bool `json:"isActive"` 
 	CreatedAt time.Time `json:"createdAt"` 
 	CreatedBy string `json:"createdBy"` 

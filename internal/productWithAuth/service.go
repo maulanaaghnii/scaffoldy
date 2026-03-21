@@ -1,4 +1,4 @@
-package category
+package productWithAuth
 
 import (
 "strings"
@@ -16,55 +16,56 @@ func NewService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
 
-// GetAllCategory
-// GetCategoryByID
-// GetCategoryByCode
-// CreateCategory
-// UpdateCategory
-// DeleteCategory
-func (s *Service) GetAllCategory() ([]Category, error) {
+// GetAllProductWithAuth
+// GetProductWithAuthByID
+// GetProductWithAuthByCode
+// CreateProductWithAuth
+// UpdateProductWithAuth
+// DeleteProductWithAuth
+func (s *Service) GetAllProductWithAuth() ([]ProductWithAuth, error) {
 	return s.repository.FindAll()
 }
 
-func (s *Service) GetCategoryByID(id string) (Category, error) {
+func (s *Service) GetProductWithAuthByID(id string) (ProductWithAuth, error) {
 	return s.repository.FindById(id)
 }
 
-func (s *Service) GetCategoryByCode(code string) (Category, error) {
+func (s *Service) GetProductWithAuthByCode(code string) (ProductWithAuth, error) {
 	return s.repository.FindByCode(code)
 }
 
-func (s *Service) CreateCategory(req CreateCategoryRequest) (Category, error) {
+func (s *Service) CreateProductWithAuth(req CreateProductWithAuthRequest) (ProductWithAuth, error) {
 	if err := s.validateCreateRequest(req); err != nil {
-		return Category{}, err
+		return ProductWithAuth{}, err
 	}
-	category := Category{
+	productWithAuth := ProductWithAuth{
 		ID: uuid.New().String(),
-		Domain: strings.TrimSpace(req.Domain),
-		Code: strings.ToUpper(strings.TrimSpace(req.Code)),
 		Name: strings.TrimSpace(req.Name),
 		Description: strings.TrimSpace(req.Description),
+		Price: req.Price,
+		Stock: req.Stock,
 		IsActive: true,
 		AuditTrails: shared.AuditTrails{
 			CreatedAt: time.Now(),
 			CreatedBy: "system",
 		},
 	}
-	err := s.repository.Save(category)
-	return category, err
+	err := s.repository.Save(productWithAuth)
+	return productWithAuth, err
 }
 
-func (s *Service) UpdateCategory(id string, req UpdateCategoryRequest) (Category, error) {
+func (s *Service) UpdateProductWithAuth(id string, req UpdateProductWithAuthRequest) (ProductWithAuth, error) {
 	existing, err := s.repository.FindById(id)
 	if err != nil {
-		return Category{}, err
+		return ProductWithAuth{}, err
 	}
 	if err := s.validateUpdateRequest(req); err != nil {
-		return Category{}, err
+		return ProductWithAuth{}, err
 	}
-	existing.Domain = strings.TrimSpace(req.Domain)
 	existing.Name = strings.TrimSpace(req.Name)
 	existing.Description = strings.TrimSpace(req.Description)
+	existing.Price = req.Price
+	existing.Stock = req.Stock
 	existing.IsActive = true
 	existing.UpdatedAt = time.Now()
 	existing.UpdatedBy = "system"
@@ -72,17 +73,17 @@ err = s.repository.Update(existing)
 return existing, err
 }
 
-func (s *Service) SoftDeleteCategory(id string) error {
+func (s *Service) SoftDeleteProductWithAuth(id string) error {
 	return s.repository.SoftDelete(id)
 }
 
-func (s *Service) DeleteCategory(id string) error {
+func (s *Service) DeleteProductWithAuth(id string) error {
 	return s.repository.Delete(id)
 }
 
 
 
-func (s *Service) validateCreateRequest(req CreateCategoryRequest) error { 
+func (s *Service) validateCreateRequest(req CreateProductWithAuthRequest) error { 
 	// if strings.TrimSpace(req.Code) == "" {
 	// 	return fmt.Errorf("code is required")
 	// }
@@ -98,7 +99,7 @@ func (s *Service) validateCreateRequest(req CreateCategoryRequest) error {
 	return nil
 }
 
-func (s *Service) validateUpdateRequest(req UpdateCategoryRequest) error {
+func (s *Service) validateUpdateRequest(req UpdateProductWithAuthRequest) error {
 	// if strings.TrimSpace(req.Name) == "" {
 	// 	return fmt.Errorf("name is required")
 	// }

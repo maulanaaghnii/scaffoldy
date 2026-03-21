@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"scaffoldy/internal/shared"
 	"scaffoldy/internal/user"
 	"scaffoldy/pkg/response"
 	"scaffoldy/pkg/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,6 +26,13 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	FullName string `json:"full_name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+}
+
 type AuthHandler struct {
 	userRepo *user.Repository
 }
@@ -32,6 +42,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 		userRepo: user.NewRepository(db),
 	}
 	router.POST("/login", h.Login)
+	router.POST("/register", h.Register)
 	router.POST("/refresh", h.RefreshToken)
 }
 
@@ -89,9 +100,67 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"user": gin.H{
 			"username":  u.Username,
 			"full_name": u.FullName,
-			"role":      u.Role,
 			"email":     u.Email,
-			"roleCode":  u.Role,
+		},
+	})
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var req RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 1. Check if user already exists
+	_, err := h.userRepo.FindByUsername(req.Username)
+	if err == nil {
+		response.Error(c, http.StatusConflict, "Username already exists")
+		return
+	} else if !errors.Is(err, user.ErrUserNotFound) {
+		fmt.Printf("[REGISTER ERROR] FindByUsername: %v\n", err)
+		response.Error(c, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// 2. Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Failed to hash password")
+		return
+	}
+
+	// 3. Create user model
+	now := time.Now()
+	u := user.User{
+		ID:       uuid.New().String(),
+		Username: req.Username,
+		Password: string(hashedPassword),
+		FullName: req.FullName,
+		Email:    req.Email,
+		IsActive: true,
+		AuditTrails: shared.AuditTrails{
+			CreatedAt: now,
+			CreatedBy: "system",
+			UpdatedAt: now,
+			UpdatedBy: "system",
+		},
+	}
+
+	// 4. Save user
+	err = h.userRepo.Save(u)
+	if err != nil {
+		fmt.Printf("[REGISTER ERROR] Save: %v\n", err)
+		response.Error(c, http.StatusInternalServerError, "Failed to register user")
+		return
+	}
+
+	response.Success(c, gin.H{
+		"message": "User registered successfully",
+		"user": gin.H{
+			"username":  u.Username,
+			"full_name": u.FullName,
+			"email":     u.Email,
 		},
 	})
 }

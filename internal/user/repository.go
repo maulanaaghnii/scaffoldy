@@ -22,27 +22,14 @@ func (r *Repository) FindByUsername(username string) (User, error) {
 		A.ID, A.Username, A.Password, 
 		COALESCE(A.FullName, ''), 
 		COALESCE(A.Email, ''), 
-		COALESCE(B.roledesc, ''),
 		A.IsActive, 
 		COALESCE(A.RefreshToken, ''),
 		A.CreatedAt, A.CreatedBy, 
 		COALESCE(A.UpdatedAt, A.CreatedAt), 
 		COALESCE(A.UpdatedBy, '')
 	FROM users A
-	LEFT JOIN tblrole B ON A.RoleCode = B.rolecode
 	WHERE A.Username = ? AND A.IsActive = true
 	`
-	// query := `
-	// 	SELECT
-	// 		ID, Username, Password,
-	// 		COALESCE(FullName, ''),
-	// 		COALESCE(Email, ''),
-	// 		IsActive, CreatedAt, CreatedBy,
-	// 		COALESCE(UpdatedAt, CreatedAt),
-	// 		COALESCE(UpdatedBy, '')
-	// 	FROM users
-	// 	WHERE Username = ? AND IsActive = true
-	// `
 
 	var u User
 	err := r.db.QueryRow(query, username).Scan(
@@ -51,7 +38,6 @@ func (r *Repository) FindByUsername(username string) (User, error) {
 		&u.Password,
 		&u.FullName,
 		&u.Email,
-		&u.Role,
 		&u.IsActive,
 		&u.RefreshToken,
 		&u.CreatedAt,
@@ -72,8 +58,8 @@ func (r *Repository) FindByUsername(username string) (User, error) {
 
 func (r *Repository) Save(u User) error {
 	query := `
-		INSERT INTO users (ID, Username, Password, FullName, Email, RoleCode, IsActive, RefreshToken, CreatedAt, CreatedBy)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO users (ID, Username, Password, FullName, Email, IsActive, RefreshToken, CreatedAt, CreatedBy)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := r.db.Exec(query,
@@ -82,7 +68,6 @@ func (r *Repository) Save(u User) error {
 		u.Password,
 		u.FullName,
 		u.Email,
-		u.Role,
 		u.IsActive,
 		u.RefreshToken,
 		u.CreatedAt,
@@ -111,14 +96,12 @@ func (r *Repository) FindByRefreshToken(token string) (User, error) {
 		A.ID, A.Username, A.Password, 
 		COALESCE(A.FullName, ''), 
 		COALESCE(A.Email, ''), 
-		COALESCE(B.roledesc, ''),
 		A.IsActive, 
 		COALESCE(A.RefreshToken, ''),
 		A.CreatedAt, A.CreatedBy, 
 		COALESCE(A.UpdatedAt, A.CreatedAt), 
 		COALESCE(A.UpdatedBy, '')
 	FROM users A
-	LEFT JOIN tblrole B ON A.RoleCode = B.rolecode
 	WHERE A.RefreshToken = ? AND A.IsActive = true
 	`
 
@@ -129,7 +112,6 @@ func (r *Repository) FindByRefreshToken(token string) (User, error) {
 		&u.Password,
 		&u.FullName,
 		&u.Email,
-		&u.Role,
 		&u.IsActive,
 		&u.RefreshToken,
 		&u.CreatedAt,

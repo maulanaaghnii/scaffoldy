@@ -1,4 +1,4 @@
-package item
+package productWithoutAuth
 
 import (
 "strings"
@@ -16,35 +16,32 @@ func NewService(repository *Repository) *Service {
 	return &Service{repository: repository}
 }
 
-// GetAllItem
-// GetItemByID
-// GetItemByCode
-// CreateItem
-// UpdateItem
-// DeleteItem
-func (s *Service) GetAllItem() ([]Item, error) {
+// GetAllProductWithoutAuth
+// GetProductWithoutAuthByID
+// GetProductWithoutAuthByCode
+// CreateProductWithoutAuth
+// UpdateProductWithoutAuth
+// DeleteProductWithoutAuth
+func (s *Service) GetAllProductWithoutAuth() ([]ProductWithoutAuth, error) {
 	return s.repository.FindAll()
 }
 
-func (s *Service) GetItemByID(id string) (Item, error) {
+func (s *Service) GetProductWithoutAuthByID(id string) (ProductWithoutAuth, error) {
 	return s.repository.FindById(id)
 }
 
-func (s *Service) GetItemByCode(code string) (Item, error) {
+func (s *Service) GetProductWithoutAuthByCode(code string) (ProductWithoutAuth, error) {
 	return s.repository.FindByCode(code)
 }
 
-func (s *Service) CreateItem(req CreateItemRequest) (Item, error) {
+func (s *Service) CreateProductWithoutAuth(req CreateProductWithoutAuthRequest) (ProductWithoutAuth, error) {
 	if err := s.validateCreateRequest(req); err != nil {
-		return Item{}, err
+		return ProductWithoutAuth{}, err
 	}
-	item := Item{
+	productWithoutAuth := ProductWithoutAuth{
 		ID: uuid.New().String(),
-		Code: strings.ToUpper(strings.TrimSpace(req.Code)),
 		Name: strings.TrimSpace(req.Name),
 		Description: strings.TrimSpace(req.Description),
-		Category: strings.TrimSpace(req.Category),
-		Unit: strings.TrimSpace(req.Unit),
 		Price: req.Price,
 		Stock: req.Stock,
 		IsActive: true,
@@ -53,22 +50,20 @@ func (s *Service) CreateItem(req CreateItemRequest) (Item, error) {
 			CreatedBy: "system",
 		},
 	}
-	err := s.repository.Save(item)
-	return item, err
+	err := s.repository.Save(productWithoutAuth)
+	return productWithoutAuth, err
 }
 
-func (s *Service) UpdateItem(id string, req UpdateItemRequest) (Item, error) {
+func (s *Service) UpdateProductWithoutAuth(id string, req UpdateProductWithoutAuthRequest) (ProductWithoutAuth, error) {
 	existing, err := s.repository.FindById(id)
 	if err != nil {
-		return Item{}, err
+		return ProductWithoutAuth{}, err
 	}
 	if err := s.validateUpdateRequest(req); err != nil {
-		return Item{}, err
+		return ProductWithoutAuth{}, err
 	}
 	existing.Name = strings.TrimSpace(req.Name)
 	existing.Description = strings.TrimSpace(req.Description)
-	existing.Category = strings.TrimSpace(req.Category)
-	existing.Unit = strings.TrimSpace(req.Unit)
 	existing.Price = req.Price
 	existing.Stock = req.Stock
 	existing.IsActive = true
@@ -78,17 +73,17 @@ err = s.repository.Update(existing)
 return existing, err
 }
 
-func (s *Service) SoftDeleteItem(id string) error {
+func (s *Service) SoftDeleteProductWithoutAuth(id string) error {
 	return s.repository.SoftDelete(id)
 }
 
-func (s *Service) DeleteItem(id string) error {
+func (s *Service) DeleteProductWithoutAuth(id string) error {
 	return s.repository.Delete(id)
 }
 
 
 
-func (s *Service) validateCreateRequest(req CreateItemRequest) error { 
+func (s *Service) validateCreateRequest(req CreateProductWithoutAuthRequest) error { 
 	// if strings.TrimSpace(req.Code) == "" {
 	// 	return fmt.Errorf("code is required")
 	// }
@@ -104,7 +99,7 @@ func (s *Service) validateCreateRequest(req CreateItemRequest) error {
 	return nil
 }
 
-func (s *Service) validateUpdateRequest(req UpdateItemRequest) error {
+func (s *Service) validateUpdateRequest(req UpdateProductWithoutAuthRequest) error {
 	// if strings.TrimSpace(req.Name) == "" {
 	// 	return fmt.Errorf("name is required")
 	// }
