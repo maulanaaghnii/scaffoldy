@@ -27,7 +27,7 @@ func main() {
 	)
 
 	m, err := migrate.New(
-		"file://migrations",
+		"file://./migrations",
 		dsn,
 	)
 	if err != nil {
