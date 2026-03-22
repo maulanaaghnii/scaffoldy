@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"scaffoldy/internal/initialUser"
 	"scaffoldy/internal/shared"
-	"scaffoldy/internal/user"
 	"scaffoldy/pkg/response"
 	"scaffoldy/pkg/utils"
 	"time"
@@ -34,12 +34,12 @@ type RegisterRequest struct {
 }
 
 type AuthHandler struct {
-	userRepo *user.Repository
+	userRepo *initialUser.Repository
 }
 
 func Register(router *gin.RouterGroup, db *sql.DB) {
 	h := &AuthHandler{
-		userRepo: user.NewRepository(db),
+		userRepo: initialUser.NewRepository(db),
 	}
 	router.POST("/login", h.Login)
 	router.POST("/register", h.Register)
@@ -56,7 +56,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// 1. Find user in DB
 	u, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
-		if errors.Is(err, user.ErrUserNotFound) {
+		if errors.Is(err, initialUser.ErrUserNotFound) {
 			response.Error(c, http.StatusUnauthorized, "Invalid username or password")
 			return
 		}
@@ -117,7 +117,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if err == nil {
 		response.Error(c, http.StatusConflict, "Username already exists")
 		return
-	} else if !errors.Is(err, user.ErrUserNotFound) {
+	} else if !errors.Is(err, initialUser.ErrUserNotFound) {
 		fmt.Printf("[REGISTER ERROR] FindByUsername: %v\n", err)
 		response.Error(c, http.StatusInternalServerError, "Internal server error")
 		return
@@ -132,7 +132,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// 3. Create user model
 	now := time.Now()
-	u := user.User{
+	u := initialUser.InitialUser{
 		ID:       uuid.New().String(),
 		Username: req.Username,
 		Password: string(hashedPassword),

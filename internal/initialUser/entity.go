@@ -1,10 +1,10 @@
-package user
+package initialUser
 
 import (
 	"scaffoldy/internal/shared"
 )
 
-type User struct {
+type InitialUser struct {
 	ID           string `json:"id"`
 	Username     string `json:"username"`
 	Password     string `json:"-"` // Hashed password, never export to JSON

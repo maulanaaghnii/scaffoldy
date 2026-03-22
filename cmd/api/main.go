@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"scaffoldy/internal/auth"
+	"scaffoldy/internal/initialUser"
 	"scaffoldy/internal/productWithAuth"
 	"scaffoldy/internal/productWithoutAuth"
 	"scaffoldy/pkg/middleware"
@@ -57,9 +58,11 @@ func main() {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			productWithAuth.Register(protected, db)
-			// [SCAFFOLDY_INSERT_MARKER]
 		}
 		productWithoutAuth.Register(api, db)
+		initialUser.Register(api, db)
+		// [SCAFFOLDY_INSERT_MARKER]
+
 	}
 
 	// Health check
