@@ -27,7 +27,7 @@ func (r *Repository) FindByUsername(username string) (User, error) {
 		A.CreatedAt, A.CreatedBy, 
 		COALESCE(A.UpdatedAt, A.CreatedAt), 
 		COALESCE(A.UpdatedBy, '')
-	FROM users A
+	FROM initial_users A
 	WHERE A.Username = ? AND A.IsActive = true
 	`
 
@@ -58,7 +58,7 @@ func (r *Repository) FindByUsername(username string) (User, error) {
 
 func (r *Repository) Save(u User) error {
 	query := `
-		INSERT INTO users (ID, Username, Password, FullName, Email, IsActive, RefreshToken, CreatedAt, CreatedBy)
+		INSERT INTO initial_users (ID, Username, Password, FullName, Email, IsActive, RefreshToken, CreatedAt, CreatedBy)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
@@ -82,7 +82,7 @@ func (r *Repository) Save(u User) error {
 }
 
 func (r *Repository) UpdateRefreshToken(userID, token string) error {
-	query := `UPDATE users SET RefreshToken = ? WHERE ID = ?`
+	query := `UPDATE initial_users SET RefreshToken = ? WHERE ID = ?`
 	_, err := r.db.Exec(query, token, userID)
 	if err != nil {
 		return fmt.Errorf("failed to update refresh token: %w", err)
@@ -101,7 +101,7 @@ func (r *Repository) FindByRefreshToken(token string) (User, error) {
 		A.CreatedAt, A.CreatedBy, 
 		COALESCE(A.UpdatedAt, A.CreatedAt), 
 		COALESCE(A.UpdatedBy, '')
-	FROM users A
+	FROM initial_users A
 	WHERE A.RefreshToken = ? AND A.IsActive = true
 	`
 

@@ -10,7 +10,6 @@ type User struct {
 	Password     string `json:"-"` // Hashed password, never export to JSON
 	FullName     string `json:"full_name"`
 	Email        string `json:"email"`
-	Role         string `json:"role"`
 	IsActive     bool   `json:"is_active"`
 	RefreshToken string `json:"-"`
 	shared.AuditTrails

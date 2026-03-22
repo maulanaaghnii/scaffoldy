@@ -8,7 +8,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(getEnv("JWT_SECRET", "yoursecretkey"))
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "yoursecretkey"
+	}
+	return []byte(secret)
+}
 
 func GenerateToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
@@ -19,7 +25,7 @@ func GenerateToken(userID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString(getJWTSecret())
 }
 
 func GenerateRefreshToken(userID string) (string, error) {
@@ -31,7 +37,7 @@ func GenerateRefreshToken(userID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString(getJWTSecret())
 }
 
 func ValidateToken(tokenString string) (*jwt.Token, error) {
@@ -40,13 +46,7 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 			return nil, errors.New("unexpected signing method")
 
 		}
-		return jwtSecret, nil
+		return getJWTSecret(), nil
 	})
 }
 
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
