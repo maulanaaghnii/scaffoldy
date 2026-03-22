@@ -1,12 +1,12 @@
 package main
 
 import (
+	"scaffoldy/internal/productWithoutAuth"
 	"log"
 	"net/http"
 	"scaffoldy/internal/auth"
 	"scaffoldy/internal/initialUser"
 	"scaffoldy/internal/productWithAuth"
-	"scaffoldy/internal/productWithoutAuth"
 	"scaffoldy/pkg/middleware"
 	"time"
 
@@ -59,8 +59,8 @@ func main() {
 		{
 			productWithAuth.Register(protected, db)
 		}
-		productWithoutAuth.Register(api, db)
 		initialUser.Register(api, db)
+				productWithoutAuth.Register(api, db)
 		// [SCAFFOLDY_INSERT_MARKER]
 
 	}

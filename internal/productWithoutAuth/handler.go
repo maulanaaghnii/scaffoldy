@@ -1,10 +1,11 @@
+
 package productWithoutAuth
 
 import (
-	"database/sql"
 	"errors"
-	"net/http"
 	"scaffoldy/pkg/response"
+	"net/http"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	group := router.Group("/productWithoutAuth")
+	group := router.Group("/product-without-auth")
 	{
 		group.GET("", h.GetAllProductWithoutAuth)
 		group.POST("", h.CreateProductWithoutAuth)
@@ -32,6 +33,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 // CreateProductWithoutAuth
 // UpdateProductWithoutAuth
 // SoftDeleteProductWithoutAuth
+
 
 type Handler struct {
 	service *Service
@@ -134,3 +136,4 @@ func (h *Handler) SoftDeleteProductWithoutAuth(c *gin.Context) {
 	}
 	response.NoContent(c)
 }
+

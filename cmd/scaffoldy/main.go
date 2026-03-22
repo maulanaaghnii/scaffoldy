@@ -26,9 +26,11 @@ func ScaffoldHanlderComponents(domainName string) {
 	data := struct {
 		DomainName      string
 		DomainNameLower string
+		DomainNameKebab string
 	}{
 		DomainName:      domainName,
 		DomainNameLower: utils.LowerFirst(domainName),
+		DomainNameKebab: utils.ToKebabCase(domainName),
 	}
 
 	err = t.Execute(file, data)

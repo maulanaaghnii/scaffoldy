@@ -14,7 +14,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	group := router.Group("/initialUser")
+	group := router.Group("/initial-user")
 	{
 		group.GET("", h.GetAllInitialUser)
 		group.POST("", h.CreateInitialUser)

@@ -14,7 +14,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	group := router.Group("/productWithAuth")
+	group := router.Group("/product-with-auth")
 	{
 		group.GET("", h.GetAllProductWithAuth)
 		group.POST("", h.CreateProductWithAuth)

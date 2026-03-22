@@ -18,7 +18,7 @@ func Register(router *gin.RouterGroup, db *sql.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	group := router.Group("/{{.DomainNameLower}}")
+	group := router.Group("/{{.DomainNameKebab}}")
 	{
 		group.GET("", h.GetAll{{.DomainName}})
 		group.POST("", h.Create{{.DomainName}})
